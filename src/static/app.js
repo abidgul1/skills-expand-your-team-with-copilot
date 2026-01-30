@@ -1,4 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Dark mode functionality
+  const darkModeToggle = document.getElementById("dark-mode-toggle");
+  const themeIcon = document.getElementById("theme-icon");
+
+  // Check for null elements
+  if (!darkModeToggle || !themeIcon) {
+    console.error("Dark mode toggle elements not found");
+    return;
+  }
+
+  // Check for saved dark mode preference or system preference
+  function initializeDarkMode() {
+    const savedTheme = localStorage.getItem("theme");
+    let isDarkMode = false;
+
+    if (savedTheme) {
+      // Use saved preference
+      isDarkMode = savedTheme === "dark";
+    } else {
+      // Check system preference
+      isDarkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    if (isDarkMode) {
+      document.body.classList.add("dark-mode");
+      themeIcon.textContent = "☀️";
+      darkModeToggle.setAttribute("aria-pressed", "true");
+    } else {
+      themeIcon.textContent = "🌙";
+      darkModeToggle.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  // Toggle dark mode
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+    const isDarkMode = document.body.classList.contains("dark-mode");
+    
+    if (isDarkMode) {
+      localStorage.setItem("theme", "dark");
+      themeIcon.textContent = "☀️";
+      darkModeToggle.setAttribute("aria-pressed", "true");
+    } else {
+      localStorage.setItem("theme", "light");
+      themeIcon.textContent = "🌙";
+      darkModeToggle.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  // Event listener for dark mode toggle
+  darkModeToggle.addEventListener("click", toggleDarkMode);
+
+  // Initialize dark mode on page load
+  initializeDarkMode();
+
   // DOM elements
   const activitiesList = document.getElementById("activities-list");
   const messageDiv = document.getElementById("message");
