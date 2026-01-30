@@ -472,6 +472,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Function to generate share URLs and handle sharing
   function generateShareUrl(platform, activityName, description, schedule) {
     const pageUrl = window.location.origin + window.location.pathname;
@@ -549,17 +556,18 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Create share buttons
+    // Create share buttons with proper escaping for XSS prevention
+    const escapedName = escapeHtml(name);
     const shareButtonsHtml = `
       <div class="share-buttons-container">
         <span class="share-label">Share:</span>
-        <button class="share-button facebook" data-platform="facebook" data-activity="${name}" title="Share on Facebook">
+        <button type="button" class="share-button facebook" data-platform="facebook" data-activity="${escapedName}" title="Share on Facebook" aria-label="Share ${escapedName} on Facebook">
           f
         </button>
-        <button class="share-button twitter" data-platform="twitter" data-activity="${name}" title="Share on Twitter">
+        <button type="button" class="share-button twitter" data-platform="twitter" data-activity="${escapedName}" title="Share on Twitter" aria-label="Share ${escapedName} on Twitter">
           𝕏
         </button>
-        <button class="share-button email" data-platform="email" data-activity="${name}" title="Share via Email">
+        <button type="button" class="share-button email" data-platform="email" data-activity="${escapedName}" title="Share via Email" aria-label="Share ${escapedName} via Email">
           ✉
         </button>
       </div>

@@ -673,6 +673,7 @@ footer {
   padding-top: 10px;
   border-top: 1px solid var(--border-light);
   justify-content: center;
+  align-items: center;
 }
 
 .share-button {
@@ -694,6 +695,11 @@ footer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.share-button:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .share-button.facebook {
   background-color: #1877f2;
   color: white;
@@ -704,12 +710,12 @@ footer {
 }
 
 .share-button.twitter {
-  background-color: #1da1f2;
+  background-color: #000000;
   color: white;
 }
 
 .share-button.twitter:hover {
-  background-color: #1a8cd8;
+  background-color: #333333;
 }
 
 .share-button.email {
@@ -724,7 +730,5 @@ footer {
 .share-label {
   font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-bottom: 5px;
-  text-align: center;
   font-weight: 500;
 }
