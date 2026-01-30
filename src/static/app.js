@@ -472,6 +472,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Function to generate share URLs and handle sharing
+  function generateShareUrl(platform, activityName, description, schedule) {
+    const pageUrl = window.location.origin + window.location.pathname;
+    const shareText = `Check out ${activityName} at Mergington High School! ${description}. Schedule: ${schedule}`;
+    
+    switch(platform) {
+      case 'facebook':
+        return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareText)}`;
+      case 'twitter':
+        return `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
+      case 'email':
+        const subject = `Join ${activityName} at Mergington High School`;
+        const body = `${shareText}\n\nVisit ${pageUrl} to see more activities!`;
+        return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      default:
+        return '';
+    }
+  }
+
+  // Function to handle share button clicks
+  function handleShare(platform, activityName, description, schedule) {
+    const shareUrl = generateShareUrl(platform, activityName, description, schedule);
+    
+    if (platform === 'email') {
+      // Use an anchor element to open email client without navigating away
+      const emailLink = document.createElement('a');
+      emailLink.href = shareUrl;
+      emailLink.click();
+    } else {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -519,10 +559,28 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Create share buttons with proper escaping for XSS prevention
+    const escapedName = escapeHtml(name);
+    const escapedDescription = escapeHtml(details.description);
+    const shareButtonsHtml = `
+      <div class="share-buttons-container">
+        <span class="share-label">Share:</span>
+        <button type="button" class="share-button facebook" data-platform="facebook" data-activity="${escapedName}" title="Share on Facebook" aria-label="Share ${escapedName} on Facebook">
+          f
+        </button>
+        <button type="button" class="share-button twitter" data-platform="twitter" data-activity="${escapedName}" title="Share on Twitter" aria-label="Share ${escapedName} on Twitter">
+          𝕏
+        </button>
+        <button type="button" class="share-button email" data-platform="email" data-activity="${escapedName}" title="Share via Email" aria-label="Share ${escapedName} via Email">
+          ✉
+        </button>
+      </div>
+    `;
+
     activityCard.innerHTML = `
       ${tagHtml}
-      <h4>${name}</h4>
-      <p>${details.description}</p>
+      <h4>${escapedName}</h4>
+      <p>${escapedDescription}</p>
       <p class="tooltip">
         <strong>Schedule:</strong> ${formattedSchedule}
         <span class="tooltip-text">Regular meetings at this time throughout the semester</span>
@@ -533,13 +591,15 @@ document.addEventListener("DOMContentLoaded", () => {
         <ul>
           ${details.participants
             .map(
-              (email) => `
+              (email) => {
+                const escapedEmail = escapeHtml(email);
+                return `
             <li>
-              ${email}
+              ${escapedEmail}
               ${
                 currentUser
                   ? `
-                <span class="delete-participant tooltip" data-activity="${name}" data-email="${email}">
+                <span class="delete-participant tooltip" data-activity="${escapedName}" data-email="${escapedEmail}">
                   ✖
                   <span class="tooltip-text">Unregister this student</span>
                 </span>
@@ -547,16 +607,18 @@ document.addEventListener("DOMContentLoaded", () => {
                   : ""
               }
             </li>
-          `
+          `;
+              }
             )
             .join("")}
         </ul>
       </div>
+      ${shareButtonsHtml}
       <div class="activity-card-actions">
         ${
           currentUser
             ? `
-          <button class="register-button" data-activity="${name}" ${
+          <button class="register-button" data-activity="${escapedName}" ${
                 isFull ? "disabled" : ""
               }>
             ${isFull ? "Activity Full" : "Register Student"}
@@ -575,6 +637,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        const platform = button.dataset.platform;
+        handleShare(platform, name, details.description, formattedSchedule);
+      });
     });
 
     // Add click handler for register button (only when authenticated)
